@@ -31,6 +31,7 @@ type Options struct {
 	CookieMaxAge      time.Duration
 	CookieSecure      bool
 	ForceAuthn        bool
+	AuthnRequestsSigned bool
 }
 
 // New creates a new Middleware
@@ -58,6 +59,7 @@ func New(opts Options) (*Middleware, error) {
 			AcsURL:      acsURL,
 			IDPMetadata: opts.IDPMetadata,
 			ForceAuthn:  &opts.ForceAuthn,
+			AuthnRequestsSigned: opts.AuthnRequestsSigned,
 		},
 		AllowIDPInitiated: opts.AllowIDPInitiated,
 		TokenMaxAge:       tokenMaxAge,
