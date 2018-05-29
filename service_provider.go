@@ -3,8 +3,8 @@ package saml
 import (
 	"bytes"
 	"compress/flate"
-	"crypto/tls"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/xml"
@@ -109,7 +109,7 @@ func (sp *ServiceProvider) Metadata() *EntityDescriptor {
 		validDuration = sp.MetadataValidDuration
 	}
 
-	authnRequestsSigned := false
+	authnRequestsSigned := sp.AuthnRequestsSigned
 	wantAssertionsSigned := true
 	validUntil := TimeNow().Add(validDuration)
 	return &EntityDescriptor{
