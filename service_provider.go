@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/beevik/etree"
@@ -113,7 +114,7 @@ func (sp *ServiceProvider) Metadata() *EntityDescriptor {
 	wantAssertionsSigned := true
 	validUntil := TimeNow().Add(validDuration)
 	return &EntityDescriptor{
-		EntityID:   sp.MetadataURL.String(),
+		EntityID:   strings.Split(sp.MetadataURL.String(), "/saml")[0],
 		ValidUntil: validUntil,
 
 		SPSSODescriptors: []SPSSODescriptor{
@@ -275,7 +276,7 @@ func (sp *ServiceProvider) MakeAuthenticationRequest(idpURL string) (*AuthnReque
 		Version:                     "2.0",
 		Issuer: &Issuer{
 			Format: "urn:oasis:names:tc:SAML:2.0:nameid-format:entity",
-			Value:  sp.MetadataURL.String(),
+			Value:  strings.Split(sp.MetadataURL.String(), "/saml")[0],
 		},
 		NameIDPolicy: &NameIDPolicy{
 			XMLName: xml.Name{
