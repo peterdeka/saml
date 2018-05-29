@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/crewjam/saml"
+	"github.com/peterdeka/saml"
 	"github.com/zenazn/goji/web"
 )
 

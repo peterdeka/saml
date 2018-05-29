@@ -12,8 +12,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/crewjam/saml"
-	"github.com/crewjam/saml/logger"
+	"github.com/peterdeka/saml"
+	"github.com/peterdeka/saml/logger"
 )
 
 const defaultTokenMaxAge = time.Hour
@@ -89,7 +89,7 @@ func New(opts Options) (*Middleware, error) {
 	}
 	// Some providers (like OneLogin) do not work properly unless the User-Agent header is specified.
 	// Setting the user agent prevents the 403 Forbidden errors.
-	req.Header.Set("User-Agent", "Golang; github.com/crewjam/saml")
+	req.Header.Set("User-Agent", "Golang; github.com/peterdeka/saml")
 
 	for i := 0; true; i++ {
 		resp, err := c.Do(req)
