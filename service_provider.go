@@ -3,6 +3,7 @@ package saml
 import (
 	"bytes"
 	"compress/flate"
+	"crypto/tls"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -81,6 +82,8 @@ type ServiceProvider struct {
 	// ForceAuthn allows you to force re-authentication of users even if the user
 	// has a SSO session at the IdP.
 	ForceAuthn *bool
+
+	AuthnRequestsSigned bool
 }
 
 // MaxIssueDelay is the longest allowed time between when a SAML assertion is
@@ -275,6 +278,9 @@ func (sp *ServiceProvider) MakeAuthenticationRequest(idpURL string) (*AuthnReque
 			Value:  sp.MetadataURL.String(),
 		},
 		NameIDPolicy: &NameIDPolicy{
+			XMLName: xml.Name{
+				Local: "NameIDPolicy",
+			},
 			AllowCreate: &allowCreate,
 			// TODO(ross): figure out exactly policy we need
 			// urn:mace:shibboleth:1.0:nameIdentifier
@@ -283,6 +289,46 @@ func (sp *ServiceProvider) MakeAuthenticationRequest(idpURL string) (*AuthnReque
 		},
 		ForceAuthn: sp.ForceAuthn,
 	}
+
+	///// Sign authn request
+	if sp.AuthnRequestsSigned {
+		keyPair := tls.Certificate{
+			Certificate: [][]byte{sp.Certificate.Raw},
+			PrivateKey:  sp.Key,
+			Leaf:        sp.Certificate,
+		}
+		keyStore := dsig.TLSCertKeyStore(keyPair)
+
+		signingContext := dsig.NewDefaultSigningContext(keyStore)
+		signingContext.Canonicalizer = dsig.MakeC14N10ExclusiveCanonicalizerWithPrefixList(canonicalizerPrefixList)
+		if err := signingContext.SetSignatureMethod(dsig.RSASHA1SignatureMethod); err != nil {
+			return nil, err
+		}
+
+		authnReqEl := req.Element()
+		signedAuthnReqEl, err := signingContext.SignEnveloped(authnReqEl)
+		if err != nil {
+			return nil, err
+		}
+
+		sigEl := signedAuthnReqEl.Child[len(signedAuthnReqEl.Child)-1]
+		req.Signature = sigEl.(*etree.Element)
+		signedAuthnReqEl = req.Element()
+
+		var signedAuthnReqBuf []byte
+		{
+			doc := etree.NewDocument()
+			doc.SetRoot(signedAuthnReqEl)
+			signedAuthnReqBuf, err = doc.WriteToBytes()
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		fmt.Printf("\n\nsignedAuthnReqBuf: %v\n\n", signedAuthnReqBuf)
+	}
+	/////
+
 	return &req, nil
 }
 
