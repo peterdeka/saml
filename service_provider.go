@@ -114,7 +114,7 @@ func (sp *ServiceProvider) Metadata() *EntityDescriptor {
 	wantAssertionsSigned := true
 	validUntil := TimeNow().Add(validDuration)
 	return &EntityDescriptor{
-		EntityID:   strings.Split(sp.MetadataURL.String(), "/saml")[0],
+		EntityID:   sp.MetadataURL.String(),
 		ValidUntil: validUntil,
 
 		SPSSODescriptors: []SPSSODescriptor{
@@ -276,7 +276,7 @@ func (sp *ServiceProvider) MakeAuthenticationRequest(idpURL string) (*AuthnReque
 		Version:                     "2.0",
 		Issuer: &Issuer{
 			Format: "urn:oasis:names:tc:SAML:2.0:nameid-format:entity",
-			Value:  strings.Split(sp.MetadataURL.String(), "/saml")[0],
+			Value:  sp.MetadataURL.String(),
 		},
 		NameIDPolicy: &NameIDPolicy{
 			XMLName: xml.Name{
